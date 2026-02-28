@@ -16,12 +16,57 @@
 - `cheatsheets/` — 10–20 pages: boot, MM, sched, IRQ, driver core, DMA, PM, VFS, net, tracing
 - `grilling/` — Q/A: short answers (10–20 lines), then expanded versions
 
-## Standard lab environment
-- Mainline kernel (git)
-- QEMU `virt` on ARM64
-- initramfs with BusyBox
-- GDB (remote), ftrace, perf, eBPF tracing (bpftrace/bpftool), lockdep, KASAN/KCSAN (test builds), kdump/crash (where it makes sense)
-- Cross-compile + optional clang/lld (toolchain discipline)
+## Standard lab environment (all linkable)
+**Kernel docs (primary)**
+- [Linux Kernel Documentation](https://docs.kernel.org/)
+- [Development tools for the kernel](https://docs.kernel.org/dev-tools/index.html)
+- [Debugging advice for Linux Kernel developers](https://docs.kernel.org/process/debugging/index.html)
+
+**Build / toolchain**
+- [Linux Kernel Makefiles (kbuild)](https://docs.kernel.org/kbuild/makefiles.html)
+- [Building Linux with Clang/LLVM](https://docs.kernel.org/kbuild/llvm.html)
+- [Clang documentation](https://clang.llvm.org/docs/index.html)
+- [LLD (LLVM linker)](https://lld.llvm.org/)
+
+**Virtualization / bring-up**
+- [QEMU Arm system emulator](https://www.qemu.org/docs/master/system/target-arm.html)
+- [QEMU `virt` machine (ARM/arm64)](https://qemu-project.gitlab.io/qemu/system/arm/virt.html)
+- [Kernel.org arm64 QEMU HOWTO](https://www.kernel.org/pub/linux/kernel/people/will/docs/qemu/qemu-arm64-howto.html)
+
+**Userspace**
+- [BusyBox documentation](https://busybox.net/BusyBox.html)
+
+**Tracing / profiling**
+- [ftrace](https://docs.kernel.org/trace/ftrace.html)
+- [Tracepoints](https://docs.kernel.org/trace/tracepoints.html)
+- [perf wiki](https://perfwiki.github.io/main/)
+- [`perf(1)` man page](https://man7.org/linux/man-pages/man1/perf.1.html)
+- [BPF documentation](https://docs.kernel.org/bpf/)
+- [bpftrace docs](https://bpftrace.org/docs/pre-release)
+- [bpftool (official repo)](https://github.com/libbpf/bpftool)
+- [`bpftool(8)` man page](https://man.archlinux.org/man/bpftool.8.en)
+
+**Debugging / correctness**
+- [Lockdep design](https://docs.kernel.org/locking/lockdep-design.html)
+- [Memory barriers](https://docs.kernel.org/core-api/wrappers/memory-barriers.html)
+- [Atomic types](https://docs.kernel.org/core-api/wrappers/atomic_t.html)
+- [printk basics (kernel log buffer)](https://docs.kernel.org/core-api/printk-basics.html)
+
+**Sanitizers**
+- [KASAN](https://docs.kernel.org/dev-tools/kasan.html)
+- [KCSAN](https://docs.kernel.org/dev-tools/kcsan.html)
+- [KFENCE](https://docs.kernel.org/dev-tools/kfence.html)
+- [KMSAN](https://docs.kernel.org/dev-tools/kmsan.html)
+
+**Crash capture / post-mortem**
+- [Kdump](https://docs.kernel.org/admin-guide/kdump/kdump.html)
+- [Crash utility white paper](https://crash-utility.github.io/crash_whitepaper.html)
+- [Ramoops (pstore backend)](https://docs.kernel.org/admin-guide/ramoops.html)
+- [Netconsole](https://docs.kernel.org/networking/netconsole.html)
+
+**Kernel debugging with GDB**
+- [GDB (Sourceware) documentation](https://www.sourceware.org/gdb/documentation/)
+- [Kernel debugging via GDB (kernel helpers)](https://docs.kernel.org/6.2/dev-tools/gdb-kernel-debugging.html)
 
 ---
 
@@ -30,17 +75,23 @@
 ## Week 0 — Setup and baseline
 **Model**
 - How the kernel is built, booted, and debugged without distribution “magic”.
+- [Kernel init overview (`init=` and early userspace)](https://docs.kernel.org/admin-guide/init.html)
 
 **Code**
 - `README`, `Documentation/`, `Makefile`, `init/Kconfig`, `kernel/printk/`
 
 **Lab**
-- Build kernel + initramfs, boot in QEMU.
-- Add `earlycon`, run remote GDB stub (QEMU `-s -S`).
-- Create two builds: “release-like” and “debug-like” (toggle lockdep/KASAN).
+- Build kernel + initramfs, boot in QEMU:
+  - [QEMU `virt` machine](https://qemu-project.gitlab.io/qemu/system/arm/virt.html)
+  - [arm64 QEMU HOWTO](https://www.kernel.org/pub/linux/kernel/people/will/docs/qemu/qemu-arm64-howto.html)
+- Add `earlycon` / `console=`:
+  - [Kernel command-line parameters](https://docs.kernel.org/admin-guide/kernel-parameters.html)
+  - [Linux Serial Console](https://docs.kernel.org/admin-guide/serial-console.html)
+- Remote debugging:
+  - [Kernel debugging via GDB](https://docs.kernel.org/6.2/dev-tools/gdb-kernel-debugging.html)
 
 **Drill**
-- 5-minute flow: reset → bootloader → kernel entry → start_kernel → init.
+- 5-minute flow: reset → bootloader → kernel entry → `start_kernel()` → init.
 
 ---
 
@@ -58,13 +109,19 @@
 **Lab**
 - Implement boot checkpoints: trace buffer in RAM + dump after boot.
 - Identify moments: MMU on, IRQ on, scheduler init.
+- Validate early logging path:
+  - [printk basics](https://docs.kernel.org/core-api/printk-basics.html)
+  - [Ramoops](https://docs.kernel.org/admin-guide/ramoops.html) (optional for persistence)
 
 **Drill**
-- Answer 1.1 and 1.3 from the interview list: correct ordering, no gaps.
+- Answer interview items 1.1 and 1.3 with correct ordering.
 
 ## Week 2 — Device Tree in boot and early init
 **Model**
-- FDT handoff, fixups, early param parsing, initcall levels, deferred probe.
+- DT handoff, fixups, early param parsing, initcall levels, deferred probe.
+- DT core docs:
+  - [Devicetree index](https://docs.kernel.org/devicetree/index.html)
+  - [Linux and the Devicetree](https://docs.kernel.org/devicetree/usage-model.html)
 
 **Code**
 - `drivers/of/*`
@@ -76,7 +133,7 @@
 - Write a minimal platform driver matching on `compatible`.
 
 **Drill**
-- 1.2 and 1.4: debugging without printk (specific techniques and limits).
+- Debug without printk (JTAG/QEMU GDB stub, RAM checkpoints, earlycon).
 
 ---
 
@@ -85,6 +142,10 @@
 ## Week 3 — `struct page`, buddy, zones, migrations
 **Model**
 - `memblock` → page allocator, zones, watermarks, reclaim.
+- Reading map:
+  - [Boot-time memory management (memblock)](https://docs.kernel.org/core-api/boot-time-mm.html)
+  - [Physical Memory](https://docs.kernel.org/mm/physical_memory.html)
+  - [Memory Management docs index](https://docs.kernel.org/mm/index.html)
 
 **Code**
 - `mm/page_alloc.c`
@@ -98,9 +159,13 @@
 **Drill**
 - 2.1–2.4: bus vs phys vs virt, `struct page`, buddy, page fault flow.
 
-## Week 4 — slab/slub, vmalloc, CMA, writeback pressure (intro)
+## Week 4 — SLUB, vmalloc, CMA, writeback pressure (intro)
 **Model**
-- kmalloc vs vmalloc, SLUB internals, CMA and DMA requiring contiguity.
+- [Memory Allocation Guide](https://docs.kernel.org/core-api/memory-allocation.html)
+- [SLUB guide](https://docs.kernel.org/6.9/mm/slub.html)
+- [vmalloc](https://docs.kernel.org/mm/vmalloc.html)
+- CMA visibility/testing:
+  - [CMA debugfs interface](https://docs.kernel.org/admin-guide/mm/cma_debugfs.html)
 
 **Code**
 - `mm/slub.c`
@@ -109,10 +174,12 @@
 
 **Lab**
 - Micro-torture: object allocations, leak hunting, slab growth.
-- Enable KASAN in a test build and catch a deliberate bug (UAF/OOB in a module).
+- Enable sanitizers on a test build:
+  - [KASAN](https://docs.kernel.org/dev-tools/kasan.html)
+  - [KCSAN](https://docs.kernel.org/dev-tools/kcsan.html) (later, concurrency week also)
 
 **Drill**
-- 2.5–2.7: differences, costs, typical failure modes and debugging.
+- 2.5–2.7: kmalloc vs vmalloc, SLUB, CMA: costs + failure modes + debug.
 
 ---
 
@@ -120,21 +187,37 @@
 
 ## Week 5 — Scheduler: history, CFS, RT, deadline
 **Model**
-- O(1) → CFS (RB-tree, vruntime), RT classes, deadline, tick, load balance.
+- Scheduler map:
+  - [Scheduler index](https://docs.kernel.org/scheduler/index.html)
+  - [CFS design](https://docs.kernel.org/scheduler/sched-design-CFS.html)
+  - [EEVDF scheduler](https://docs.kernel.org/scheduler/sched-eevdf.html)
+- Keep the “mental model” at the level: rq → entity → vruntime/lag → pick-next → balance.
 
 **Code**
 - `kernel/sched/*` (especially `fair.c`, `rt.c`, `deadline.c`, `core.c`)
 
 **Lab**
-- Trace scheduler: wakeups, migrations, latencies.
-- Create a `perf` profile with kernel stacks under CPU load and identify hot paths.
+- Trace scheduler: wakeups, migrations, latencies:
+  - [ftrace](https://docs.kernel.org/trace/ftrace.html)
+  - [Tracepoints](https://docs.kernel.org/trace/tracepoints.html)
+- Profile CPU hot paths:
+  - [perf wiki](https://perfwiki.github.io/main/)
+  - [`perf(1)`](https://man7.org/linux/man-pages/man1/perf.1.html)
 
 **Drill**
-- 3.1 and 9.1: CFS mechanics + what RT actually changes.
+- 3.1 and 9.1: CFS mechanics + what RT changes.
 
 ## Week 6 — Concurrency: locks, atomics, barriers, RCU
 **Model**
-- Atomic context, preemption, IRQ contexts, lock ordering, RCU read-side vs update-side.
+- Locking / correctness:
+  - [Locking index](https://docs.kernel.org/locking/index.html)
+  - [Lockdep design](https://docs.kernel.org/locking/lockdep-design.html)
+- Concurrency primitives:
+  - [Atomic types](https://docs.kernel.org/core-api/wrappers/atomic_t.html)
+  - [Memory barriers](https://docs.kernel.org/core-api/wrappers/memory-barriers.html)
+- RCU:
+  - [RCU Handbook](https://docs.kernel.org/RCU/index.html)
+  - [RCU concepts](https://docs.kernel.org/RCU/rcu.html)
 
 **Code**
 - `kernel/locking/*`
@@ -143,9 +226,11 @@
 **Lab**
 - Enable lockdep, trigger a deliberate deadlock in a module, interpret the report.
 - Implement a “read-mostly” data structure using RCU.
+- Add a targeted race and catch it with:
+  - [KCSAN](https://docs.kernel.org/dev-tools/kcsan.html)
 
 **Drill**
-- 3.2–3.5: preemption, locks, RCU, “sleep while atomic” — consequences and detection.
+- 3.2–3.5: preemption, locks, RCU, “sleep while atomic”.
 
 ---
 
@@ -153,7 +238,11 @@
 
 ## Week 7 — IRQ pipeline on ARM + softirq/workqueues
 **Model**
-- Top half vs bottom half, softirq, tasklets, workqueues, timers, interrupt storm.
+- Generic IRQ layer:
+  - [Generic IRQ handling](https://docs.kernel.org/core-api/genericirq.html)
+  - [irq_domain mapping](https://docs.kernel.org/core-api/irq/irq-domain.html)
+- Workqueues:
+  - [Workqueue API](https://docs.kernel.org/core-api/workqueue.html)
 
 **Code**
 - `kernel/irq/*`
@@ -162,11 +251,12 @@
 - `drivers/irqchip/*` (GIC overview)
 
 **Lab**
-- Build a “storm simulator” (software-trigger) and show symptoms in `/proc/interrupts` + tracing.
+- Build a “storm simulator” (software-trigger) and show symptoms:
+  - `/proc/interrupts`, trace events, ftrace
 - Move work from softirq to workqueue and demonstrate the difference (sleep vs no-sleep).
 
 **Drill**
-- 4.1–4.4: no hand-waving; concrete symptoms and tools.
+- 4.1–4.4: top/bottom halves, softirq, IRQ storms: diagnosis playbook.
 
 ---
 
@@ -174,7 +264,8 @@
 
 ## Week 8 — Device model: kobject, sysfs, bus/class, probe
 **Model**
-- How the kernel materializes devices, how probe/remove works, why deferred probe exists.
+- Driver core mindset:
+  - [Driver core / infrastructure](https://docs.kernel.org/driver-api/infrastructure.html)
 
 **Code**
 - `drivers/base/*`
@@ -190,7 +281,9 @@
 
 ## Week 9 — DT in practice: clocks, resets, regulators, pinctrl
 **Model**
-- Phandles, provider/consumer, resource ordering, “why it works only sometimes”.
+- DT usage/bindings:
+  - [Devicetree index](https://docs.kernel.org/devicetree/index.html)
+  - [Linux and the Devicetree](https://docs.kernel.org/devicetree/usage-model.html)
 
 **Code**
 - `drivers/clk/*`
@@ -204,7 +297,7 @@
 - Inject a DT error (trigger/polarity/address) and diagnose it like real bring-up.
 
 **Drill**
-- 5.3 + “DT bug vs driver bug” — distinguishing by symptoms.
+- “DT bug vs driver bug”: distinguish by symptoms + evidence.
 
 ---
 
@@ -212,18 +305,25 @@
 
 ## Week 10 — DMA mapping, cache coherency, IOMMU/SWIOTLB
 **Model**
-- `dma_addr_t` is not PA, mapping directions, sync, coherent vs streaming.
-- IOMMU: isolation, translation, device limitations.
+- DMA API:
+  - [DMA API (reference)](https://docs.kernel.org/core-api/dma-api.html)
+  - [DMA API HOWTO](https://docs.kernel.org/core-api/dma-api-howto.html)
+- Bounce buffering:
+  - [swiotlb](https://docs.kernel.org/core-api/swiotlb.html)
+- IOMMU surface (conceptual + interfaces):
+  - [VFIO (IOMMU-protected device access)](https://docs.kernel.org/driver-api/vfio.html)
+  - [IOMMUFD (userspace API)](https://docs.kernel.org/userspace-api/iommufd.html)
 
 **Code**
-- `kernel/dma/*`, `drivers/iommu/*` (overview), `include/linux/dma-mapping.h`
+- `kernel/dma/*`, `include/linux/dma-mapping.h`
+- `drivers/iommu/*` (overview)
 
 **Lab**
 - Driver with a DMA buffer: correct map/unmap + a deliberate cache sync bug and its symptom.
-- Show how the same code behaves differently on coherent vs non-coherent systems.
+- Demonstrate coherent vs non-coherent assumptions and where they break.
 
 **Drill**
-- 5.5–5.6: DMA/IOMMU without mixing up address types.
+- 5.5–5.6: DMA/IOMMU without mixing address types.
 
 ---
 
@@ -231,13 +331,15 @@
 
 ## Week 11 — Block layer and I/O schedulers
 **Model**
-- bio/request, blk-mq, latency vs throughput, schedulers (mq-deadline/bfq/none).
+- Block docs map:
+  - [Block index](https://docs.kernel.org/block/index.html)
+  - [blk-mq](https://docs.kernel.org/block/blk-mq.html)
 
 **Code**
 - `block/*`, `drivers/block/*` (overview)
 
 **Lab**
-- Profile I/O: `perf` + block tracepoints. Pinpoint where performance is lost (queueing vs FS vs device).
+- Profile I/O: perf + block tracepoints. Pinpoint where performance is lost (queueing vs FS vs device).
 - Change scheduler and show latency impact.
 
 **Drill**
@@ -245,7 +347,9 @@
 
 ## Week 12 — VFS, page cache, writeback, open()
 **Model**
-- dentry/inode/file, path lookup, page cache, dirty throttling, fsync semantics.
+- VFS / lookup:
+  - [VFS overview](https://docs.kernel.org/filesystems/vfs.html)
+  - [Pathname lookup](https://docs.kernel.org/filesystems/path-lookup.html)
 
 **Code**
 - `fs/namei.c`
@@ -257,15 +361,19 @@
 - Force writeback congestion and demonstrate throttling.
 
 **Drill**
-- 7.1–7.3: VFS/open/page cache, plus typical production symptoms.
+- 7.1–7.3: VFS/open/page cache + production failure patterns.
 
 ---
 
 # Phase 8: Networking (Week 13)
 
-## Week 13 — `sk_buff`, NAPI, netdev, netfilter (interview scope)
+## Week 13 — `sk_buff`, NAPI, netdev (interview scope)
 **Model**
-- RX/TX paths, softirq, backlog, where latency and drops come from.
+- Networking docs:
+  - [Networking index](https://docs.kernel.org/networking/index.html)
+  - [`struct sk_buff`](https://docs.kernel.org/networking/skbuff.html)
+  - [NAPI](https://docs.kernel.org/networking/napi.html)
+  - [Netdevices guide (driver oriented)](https://docs.kernel.org/networking/netdevices.html)
 
 **Code**
 - `net/core/*`
@@ -276,7 +384,7 @@
 - Identify bottleneck: IRQ vs ksoftirqd vs user-space.
 
 **Drill**
-- “Random degradation” diagnostics including networking.
+- “Random degradation” including networking.
 
 ---
 
@@ -284,7 +392,11 @@
 
 ## Week 14 — suspend/resume + runtime PM
 **Model**
-- DPM callbacks, ordering, wakeup sources, cpuidle/cpufreq in embedded.
+- PM docs:
+  - [Power Management index](https://docs.kernel.org/power/index.html)
+  - [System suspend code flows](https://docs.kernel.org/admin-guide/pm/suspend-flows.html)
+  - [Device PM basics](https://docs.kernel.org/driver-api/pm/devices.html)
+  - [Basic PM debugging](https://docs.kernel.org/power/basic-pm-debugging.html)
 
 **Code**
 - `drivers/base/power/*`
@@ -295,15 +407,23 @@
 - Simulate “hang on 3rd resume”: state accumulation (deliberate bug) and debug plan.
 
 **Drill**
-- 6.1–6.4: resume path failure modes and tools.
+- 6.1–6.4: resume failure modes + tools.
 
 ---
 
 # Phase 10: Debugging/Tracing/Production (Week 15)
 
-## Week 15 — Observability: ftrace/perf/lockdep/kgdb/kdump
+## Week 15 — Observability: ftrace/perf/lockdep/kgdb/kdump/crash
 **Model**
-- Which tool for which problem type and why.
+- Tool map:
+  - [Debugging advice index](https://docs.kernel.org/process/debugging/index.html)
+  - [ftrace](https://docs.kernel.org/trace/ftrace.html)
+  - [Tracepoints](https://docs.kernel.org/trace/tracepoints.html)
+  - [Lockdep](https://docs.kernel.org/locking/lockdep-design.html)
+  - [Kdump](https://docs.kernel.org/admin-guide/kdump/kdump.html)
+  - [Crash utility white paper](https://crash-utility.github.io/crash_whitepaper.html)
+  - [Ramoops](https://docs.kernel.org/admin-guide/ramoops.html)
+  - [Netconsole](https://docs.kernel.org/networking/netconsole.html)
 
 **Code**
 - `kernel/trace/*`
@@ -311,8 +431,8 @@
 
 **Lab**
 - ftrace function_graph on a chosen problem.
-- perf + flamegraph mindset (kernel stacks).
-- kdump/crash: core commands to analyze tasks and stacks.
+- perf + kernel stacks.
+- kdump/crash: analyze a vmcore (baseline commands: tasks, bt, log, kmem, files).
 
 **Drill**
 - 8.1–8.4: production debugging playbooks.
@@ -323,14 +443,20 @@
 
 ## Week 16 — PREEMPT_RT and deterministic latency
 **Model**
-- Threaded IRQ, rtmutex, priority inheritance, what generates jitter.
+- RT internals:
+  - [Real-time preemption (PREEMPT_RT)](https://docs.kernel.org/core-api/real-time/)
+  - [How realtime kernels differ](https://docs.kernel.org/core-api/real-time/differences.html)
+  - [RT-mutex subsystem](https://docs.kernel.org/locking/rt-mutex.html)
 
 **Code**
-- `kernel/locking/rtmutex.c` (look-in), RT sched pieces already covered
+- `kernel/locking/rtmutex.c` (look-in)
+- `kernel/sched/rt.c` (review in context of RT class behavior)
 
 **Lab**
-- Latency measurements (cyclictest mindset), identify jitter sources (irqsoff/preemptoff).
-- Compare behavior: vanilla vs RT (QEMU as a model, not an absolute benchmark).
+- Latency measurements:
+  - [cyclictest (LF realtime wiki)](https://wiki.linuxfoundation.org/realtime/documentation/howto/tools/cyclictest/start)
+- Latency source hunting:
+  - [timerlat tracer](https://docs.kernel.org/trace/timerlat-tracer.html)
 
 **Drill**
 - 9.1–9.3: RT mechanics and what breaks determinism.
@@ -341,27 +467,44 @@
 Each sprint = 1 week.
 
 ## Sprint A — Boot time reduction
-- `initcall_debug`, dependency trimming, async probe, user-space sequencing.
+- Use `initcall_debug` and tracing to isolate slow initcalls:
+  - [Kernel command-line parameters](https://docs.kernel.org/admin-guide/kernel-parameters.html)
+  - [ftrace](https://docs.kernel.org/trace/ftrace.html)
 
 ## Sprint B — Regression after kernel update
-- `git bisect` + automated test, perf delta, config delta, vendor patchset delta.
+- `git bisect` + automated test, perf delta, config delta, vendor patchset delta:
+  - [perf wiki](https://perfwiki.github.io/main/)
 
 ## Sprint C — Vendor divergence vs upstream
-- Patch hygiene strategy, upstreaming, stable backports, security risk management.
+- Patch hygiene strategy, upstreaming, stable backports, security risk management:
+  - [Submitting patches (kernel docs)](https://docs.kernel.org/process/submitting-patches.html)
 
 ## Sprint D — Debug framework for a new SoC
-- Multi-layer logging (early/persistent/trace/hw), reset reason, crash area, ETM/CoreSight plan.
+- Multi-layer logging (early/persistent/trace/hw):
+  - [printk basics](https://docs.kernel.org/core-api/printk-basics.html)
+  - [Ramoops](https://docs.kernel.org/admin-guide/ramoops.html)
+  - [Netconsole](https://docs.kernel.org/networking/netconsole.html)
+  - [Tracepoints](https://docs.kernel.org/trace/tracepoints.html)
+  - [ftrace](https://docs.kernel.org/trace/ftrace.html)
 
 ---
 
 # Capstone (2 weeks, after Phase 11)
-- Define a DT device with resources (reg/irq/clock/reset/regulator).
-- Write the driver: init → IRQ → workqueue → DMA buffer (model) → sysfs control.
+- Define a DT device with resources (reg/irq/clock/reset/regulator):
+  - [Linux and the Devicetree](https://docs.kernel.org/devicetree/usage-model.html)
+- Write the driver: init → IRQ → workqueue → DMA buffer (model) → sysfs control:
+  - [Generic IRQ handling](https://docs.kernel.org/core-api/genericirq.html)
+  - [Workqueue API](https://docs.kernel.org/core-api/workqueue.html)
+  - [DMA API HOWTO](https://docs.kernel.org/core-api/dma-api-howto.html)
 - Introduce 3 controlled bugs:
   1) sleep in atomic context,
   2) broken IRQ handling (storm),
   3) DMA sync bug.
-- Diagnose each bug using a different tool (lockdep/ftrace/perf/dmesg+ratelimit/pstore).
+- Diagnose each bug using a different tool:
+  - [lockdep](https://docs.kernel.org/locking/lockdep-design.html)
+  - [ftrace](https://docs.kernel.org/trace/ftrace.html)
+  - [perf](https://perfwiki.github.io/main/)
+  - [ramoops](https://docs.kernel.org/admin-guide/ramoops.html) / [netconsole](https://docs.kernel.org/networking/netconsole.html)
 - Produce a patch series: fix + commit message + test plan.
 
 ---
