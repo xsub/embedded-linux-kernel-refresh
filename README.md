@@ -1,7 +1,9 @@
 [# embedded-linux-kernel-refresh
 ](https://github.com/xsub/embedded-linux-kernel-refresh/)
 
-# Kernel Refresh for an Embedded Linux Engineer (Senior/Staff) — Syllabus
+# Kernel Refresh for an Embedded Linux Engineer — Syllabus
+
+### Note: This course is aimed at Senior/Staff-level preparation.
 
 ## Course assumptions
 - **Goal:** rebuild a complete, coherent kernel mental model (arch → core → subsystems → debug/production → RT → upstream) so you can reconstruct mechanisms from memory, not definitions.
