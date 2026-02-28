@@ -376,3 +376,15 @@ Each sprint = 1 week.
 - Suspend/resume: ordering, wakeups, “third resume hang” playbook.
 - Production: action plans for “panic without logs”, “crash without stack trace”, “degradation after days”.
 - Tracing: ftrace/perf/lockdep/kgdb/kdump used practically in labs.
+
+
+
+## Licensing
+
+This repository is multi-licensed by file type:
+
+- **MIT** — tooling and scripts (default `LICENSE`)
+- **CC BY 4.0** — documentation in `docs/`, `kernel-notes/`, `cheatsheets/`, `grilling/` (see `LICENSE-docs`)
+- **GPL-2.0-only** — kernel modules and kernel patch files (see `LICENSE-kernel`)
+
+Where files include an SPDX header, the SPDX identifier is authoritative.
