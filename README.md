@@ -10,6 +10,7 @@
 - Track progress: `ROADMAP.md`
 - Set up labs: `docs/environment.md`
 - Output format rules: `docs/methodology.md`
+- Passing criteria: see `docs/syllabus.md#minimum-passing-standard-measurable`
 
 ## Repository layout
 - `docs/` — syllabus, environment, methodology
